@@ -10,6 +10,27 @@ trait CustomerDao {
 }
 
 
+
+class SormCustomerDao extends CustomerDao {
+
+  import sorm._
+
+
+  object Db extends Instance(
+    entities = Set(
+      Entity[Customer]()
+    ),
+    url = "jdbc:h2:mem:testo1"
+  )
+
+
+  override def insertCustomers(customers: List[Customer]): List[Customer] = customers.map(c => Db.save(c))
+
+  override def findAllCustomers(): List[Customer] = Db.query[Customer].fetch().toList
+}
+
+
+
 class DoobieCustomerDao extends CustomerDao {
 
   import cats.effect._
@@ -43,17 +64,6 @@ class DoobieCustomerDao extends CustomerDao {
   private val xa = setup.unsafeRunSync()
 
 
-
-  def insert2_H2(firstname: String, lastname: String): ConnectionIO[Customer] =
-    for {
-      id <- sql"insert into customer (firstname, lastname) values ($firstname, $lastname)"
-        .update
-        .withUniqueGeneratedKeys[Int]("id")
-      c  <- sql"select id, firstname, lastname from customer where id = $id"
-        .query[Customer]
-        .unique
-    } yield c
-
   override def insertCustomers(customers: List[Customer]): List[Customer] = {
     def customerToDescription(customer: Customer) = (customer.firstname, customer.lastname)
     val customerDescriptions = customers map customerToDescription
@@ -65,7 +75,8 @@ class DoobieCustomerDao extends CustomerDao {
     // here it is actually run
     val results = streamWithEffects.compile.toList.transact(xa).unsafeRunSync()
 
-    for ((newId, oldCustomer) <- results zip customers) yield oldCustomer.copy(id = newId)
+    //for ((newId, oldCustomer) <- results zip customers) yield oldCustomer.copy(id = newId)
+    customers
   }
 
   override def findAllCustomers(): List[Customer] = sql"select * from customer"
@@ -73,5 +84,4 @@ class DoobieCustomerDao extends CustomerDao {
     .list
     .transact(xa)
     .unsafeRunSync()
-
 }

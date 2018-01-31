@@ -7,7 +7,7 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
 
-import science.wasabi.testo.dao.DoobieCustomerDao
+import science.wasabi.testo.dao._
 import science.wasabi.testo.dto.Customer
 import science.wasabi.testo.gui.CustomerUi
 import science.wasabi.testo.service.CustomerService
@@ -15,16 +15,16 @@ import science.wasabi.testo.service.CustomerService
 
 object MainApplication extends JFXApp {
 
-  val dao = new DoobieCustomerDao()
+  val dao = new SormCustomerDao()
 
   private val customers = List(
-    Customer(0, "Jack", "Bauer"),
-    Customer(0, "Chloe", "O'Brian"),
-    Customer(0, "Kim", "Bauer"),
-    Customer(0, "David", "Palmer"),
-    Customer(0, "Michelle", "Dessler")
+    Customer("Jack", "Bauer"),
+    Customer("Chloe", "O'Brian"),
+    Customer("Kim", "Bauer"),
+    Customer("David", "Palmer"),
+    Customer("Michelle", "Dessler")
   )
-  val res = dao.insertCustomers(customers)
+  private val res = dao.insertCustomers(customers)
   println(res)
 
   lazy val service: CustomerService = new CustomerService(dao)
